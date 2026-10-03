@@ -1,0 +1,850 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mis Calorías</title>
+
+  <style>
+    :root {
+      --fondo: #f7f8f4;
+      --tarjeta: #ffffff;
+      --texto: #1e2922;
+      --suave: #69756d;
+      --principal: #26734d;
+      --principal-oscuro: #185837;
+      --borde: #dce4dd;
+      --alerta: #c64c38;
+      --sombra: 0 5px 18px rgba(25, 55, 35, 0.08);
+    }
+
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background: var(--fondo);
+      color: var(--texto);
+      padding-bottom: 90px;
+    }
+
+    .contenedor {
+      max-width: 620px;
+      margin: auto;
+      padding: 16px;
+    }
+
+    header {
+      margin: 8px 0 18px;
+    }
+
+    h1 {
+      font-size: 28px;
+      margin: 0 0 6px;
+    }
+
+    h2 {
+      font-size: 20px;
+      margin: 0 0 14px;
+    }
+
+    .fecha, .nota {
+      color: var(--suave);
+      font-size: 14px;
+      margin: 0;
+    }
+
+    .tarjeta {
+      background: var(--tarjeta);
+      border: 1px solid var(--borde);
+      border-radius: 18px;
+      box-shadow: var(--sombra);
+      padding: 16px;
+      margin-bottom: 14px;
+    }
+
+    .resumen-principal {
+      display: flex;
+      align-items: end;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .calorias-grandes {
+      font-size: 28px;
+      font-weight: 800;
+    }
+
+    .progreso-fondo {
+      height: 12px;
+      width: 100%;
+      background: #e5ebe6;
+      border-radius: 99px;
+      overflow: hidden;
+      margin: 14px 0 8px;
+    }
+
+    .progreso {
+      height: 100%;
+      width: 0%;
+      border-radius: 99px;
+      background: var(--principal);
+      transition: width 0.3s;
+    }
+
+    .macros {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-top: 16px;
+    }
+
+    .macro {
+      background: #f2f6f1;
+      border-radius: 12px;
+      padding: 10px;
+      text-align: center;
+    }
+
+    .macro strong {
+      display: block;
+      font-size: 16px;
+      margin-top: 4px;
+    }
+
+    button, input, select {
+      font: inherit;
+    }
+
+    button {
+      min-height: 48px;
+      border: none;
+      border-radius: 13px;
+      padding: 11px 15px;
+      cursor: pointer;
+      font-weight: 700;
+    }
+
+    .boton-principal {
+      width: 100%;
+      background: var(--principal);
+      color: #fff;
+      font-size: 16px;
+      margin: 2px 0 16px;
+    }
+
+    .boton-principal:active {
+      background: var(--principal-oscuro);
+    }
+
+    .boton-secundario {
+      color: var(--principal-oscuro);
+      background: #e6f2ea;
+    }
+
+    .boton-peligro {
+      color: #9f3020;
+      background: #fde9e5;
+    }
+
+    .frecuentes {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 9px;
+    }
+
+    .frecuentes button {
+      min-height: 38px;
+      border-radius: 99px;
+      background: #eef4ee;
+      color: #245739;
+      font-size: 14px;
+      padding: 7px 12px;
+    }
+
+    .registro {
+      padding: 0;
+      overflow: hidden;
+    }
+
+    .fila-registro {
+      padding: 13px 15px;
+      border-bottom: 1px solid var(--borde);
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .fila-registro:last-child {
+      border-bottom: none;
+    }
+
+    .fila-registro strong {
+      display: block;
+    }
+
+    .fila-registro small {
+      color: var(--suave);
+    }
+
+    .kcal {
+      font-weight: 800;
+      color: var(--principal-oscuro);
+    }
+
+    .vacio {
+      text-align: center;
+      color: var(--suave);
+      padding: 24px 12px;
+    }
+
+    dialog {
+      border: none;
+      width: min(100%, 620px);
+      border-radius: 20px 20px 0 0;
+      margin: auto auto 0;
+      padding: 0;
+      box-shadow: 0 -5px 30px rgba(0, 0, 0, 0.16);
+    }
+
+    dialog::backdrop {
+      background: rgba(0, 0, 0, 0.38);
+    }
+
+    .modal {
+      padding: 20px 16px 28px;
+      max-height: 88vh;
+      overflow-y: auto;
+    }
+
+    .cerrar {
+      float: right;
+      background: #f1f2ef;
+      color: #435147;
+      min-height: 38px;
+      padding: 6px 11px;
+    }
+
+    label {
+      display: block;
+      font-weight: 700;
+      margin: 16px 0 7px;
+    }
+
+    input, select {
+      width: 100%;
+      min-height: 48px;
+      border: 1px solid #cbd7ce;
+      border-radius: 12px;
+      padding: 10px 12px;
+      background: #fff;
+      color: var(--texto);
+    }
+
+    .fila-dos {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .resultado {
+      background: #f0f7f1;
+      border-radius: 14px;
+      padding: 13px;
+      margin: 16px 0;
+    }
+
+    .resultado-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 5px;
+      text-align: center;
+      margin-top: 10px;
+    }
+
+    .resultado-grid span {
+      font-size: 12px;
+      color: var(--suave);
+      display: block;
+    }
+
+    .resultado-grid strong {
+      font-size: 15px;
+    }
+
+    .acciones {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .acciones button {
+      font-size: 14px;
+    }
+
+    .oculto {
+      display: none;
+    }
+
+    .mensaje {
+      position: fixed;
+      left: 50%;
+      bottom: 24px;
+      transform: translateX(-50%);
+      background: #1e3929;
+      color: white;
+      padding: 12px 16px;
+      border-radius: 99px;
+      box-shadow: var(--sombra);
+      z-index: 5;
+      white-space: nowrap;
+    }
+
+    @media (max-width: 380px) {
+      .macros {
+        grid-template-columns: 1fr;
+      }
+
+      .resultado-grid {
+        grid-template-columns: 1fr 1fr;
+        gap: 11px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <main class="contenedor">
+    <header>
+      <h1>🍽️ Mis calorías</h1>
+      <p class="fecha" id="fechaActual"></p>
+    </header>
+
+    <section class="tarjeta">
+      <div class="resumen-principal">
+        <div>
+          <p class="nota">Consumido hoy</p>
+          <div class="calorias-grandes">
+            <span id="caloriasConsumidas">0</span> / <span id="metaCalorias">1800</span> kcal
+          </div>
+        </div>
+        <strong id="caloriasRestantes">Restan 1800</strong>
+      </div>
+
+      <div class="progreso-fondo">
+        <div class="progreso" id="barraCalorias"></div>
+      </div>
+
+      <p class="nota" id="porcentajeCalorias">0% de tu meta diaria</p>
+
+      <div class="macros">
+        <div class="macro">
+          <span>Proteína</span>
+          <strong><span id="proteinaConsumida">0</span> g</strong>
+          <small id="metaProteina">Meta: 120 g</small>
+        </div>
+        <div class="macro">
+          <span>Carbohidratos</span>
+          <strong><span id="carbohidratosConsumidos">0</span> g</strong>
+          <small id="metaCarbohidratos">Meta: 180 g</small>
+        </div>
+        <div class="macro">
+          <span>Grasas</span>
+          <strong><span id="grasaConsumida">0</span> g</strong>
+          <small id="metaGrasa">Meta: 60 g</small>
+        </div>
+      </div>
+    </section>
+
+    <button class="boton-principal" id="abrirRegistro">＋ Agregar alimento</button>
+
+    <section class="tarjeta">
+      <h2>Mis alimentos frecuentes</h2>
+      <div class="frecuentes" id="botonesFrecuentes"></div>
+      <p class="nota" id="sinFrecuentes">Aún no tienes alimentos frecuentes.</p>
+    </section>
+
+    <section class="tarjeta">
+      <h2>Comidas de hoy</h2>
+      <div class="registro" id="listaComidas"></div>
+    </section>
+
+    <section class="acciones">
+      <button class="boton-secundario" id="abrirMetas">⚙️ Metas</button>
+      <button class="boton-secundario" id="descargarRespaldo">⬇️ Respaldo</button>
+      <button class="boton-secundario" id="botonImportar">⬆️ Restaurar</button>
+      <button class="boton-peligro" id="eliminarDia">🗑️ Borrar hoy</button>
+    </section>
+
+    <input type="file" id="archivoImportar" accept=".json" class="oculto">
+  </main>
+
+  <dialog id="modalRegistro">
+    <div class="modal">
+      <button class="cerrar" data-cerrar="modalRegistro">✕</button>
+      <h2>Agregar alimento</h2>
+
+      <label for="alimento">Alimento</label>
+      <input id="alimento" type="text" placeholder="Ejemplo: arroz cocido" autocomplete="off">
+
+      <div class="fila-dos">
+        <div>
+          <label for="comida">Comida</label>
+          <select id="comida">
+            <option>Desayuno</option>
+            <option>Media mañana</option>
+            <option selected>Almuerzo</option>
+            <option>Merienda</option>
+            <option>Cena</option>
+            <option>Otro</option>
+          </select>
+        </div>
+        <div>
+          <label for="cantidad">Cantidad (g)</label>
+          <input id="cantidad" type="number" value="100" min="1" inputmode="decimal">
+        </div>
+      </div>
+
+      <p class="nota" style="margin-top:18px;">
+        Escribe los valores nutricionales por cada 100 g, según la etiqueta del producto o una fuente confiable.
+      </p>
+
+      <div class="fila-dos">
+        <div>
+          <label for="kcal100">Calorías / 100 g</label>
+          <input id="kcal100" type="number" value="0" min="0" inputmode="decimal">
+        </div>
+        <div>
+          <label for="proteina100">Proteína / 100 g</label>
+          <input id="proteina100" type="number" value="0" min="0" inputmode="decimal">
+        </div>
+        <div>
+          <label for="carbos100">Carbohidratos / 100 g</label>
+          <input id="carbos100" type="number" value="0" min="0" inputmode="decimal">
+        </div>
+        <div>
+          <label for="grasa100">Grasa / 100 g</label>
+          <input id="grasa100" type="number" value="0" min="0" inputmode="decimal">
+        </div>
+      </div>
+
+      <div class="resultado">
+        <strong>Resultado de tu porción</strong>
+        <div class="resultado-grid">
+          <div><span>Calorías</span><strong id="vistaKcal">0 kcal</strong></div>
+          <div><span>Proteína</span><strong id="vistaProteina">0 g</strong></div>
+          <div><span>Carbos</span><strong id="vistaCarbos">0 g</strong></div>
+          <div><span>Grasa</span><strong id="vistaGrasa">0 g</strong></div>
+        </div>
+      </div>
+
+      <label style="display:flex; align-items:center; gap:8px; font-weight:normal;">
+        <input id="guardarFrecuente" type="checkbox" style="width:20px; min-height:20px;">
+        Guardar también como alimento frecuente
+      </label>
+
+      <button class="boton-principal" id="guardarAlimento">Guardar alimento</button>
+    </div>
+  </dialog>
+
+  <dialog id="modalMetas">
+    <div class="modal">
+      <button class="cerrar" data-cerrar="modalMetas">✕</button>
+      <h2>Mis metas diarias</h2>
+
+      <label for="metaKcalInput">Calorías</label>
+      <input id="metaKcalInput" type="number" min="500" value="1800">
+
+      <label for="metaProteinaInput">Proteína (g)</label>
+      <input id="metaProteinaInput" type="number" min="0" value="120">
+
+      <label for="metaCarbosInput">Carbohidratos (g)</label>
+      <input id="metaCarbosInput" type="number" min="0" value="180">
+
+      <label for="metaGrasaInput">Grasas (g)</label>
+      <input id="metaGrasaInput" type="number" min="0" value="60">
+
+      <button class="boton-principal" id="guardarMetas">Guardar metas</button>
+    </div>
+  </dialog>
+
+  <script>
+    const CLAVE_REGISTROS = "mis_calorias_registros_v1";
+    const CLAVE_FRECUENTES = "mis_calorias_frecuentes_v1";
+    const CLAVE_METAS = "mis_calorias_metas_v1";
+
+    const hoy = new Date().toISOString().slice(0, 10);
+
+    const metasPredeterminadas = {
+      calorias: 1800,
+      proteina: 120,
+      carbohidratos: 180,
+      grasa: 60
+    };
+
+    function leerDatos(clave, valorPredeterminado) {
+      try {
+        const guardado = localStorage.getItem(clave);
+        return guardado ? JSON.parse(guardado) : valorPredeterminado;
+      } catch {
+        return valorPredeterminado;
+      }
+    }
+
+    function guardarDatos(clave, datos) {
+      localStorage.setItem(clave, JSON.stringify(datos));
+    }
+
+    let registros = leerDatos(CLAVE_REGISTROS, []);
+    let frecuentes = leerDatos(CLAVE_FRECUENTES, []);
+    let metas = leerDatos(CLAVE_METAS, metasPredeterminadas);
+
+    const formatoNumero = new Intl.NumberFormat("es-CO", {
+      maximumFractionDigits: 1
+    });
+
+    function numero(id) {
+      return Number(document.getElementById(id).value) || 0;
+    }
+
+    function fechaBonita() {
+      const texto = new Date().toLocaleDateString("es-CO", {
+        weekday: "long",
+        day: "numeric",
+        month: "long"
+      });
+      document.getElementById("fechaActual").textContent =
+        texto.charAt(0).toUpperCase() + texto.slice(1);
+    }
+
+    function calcularPorcion() {
+      const factor = numero("cantidad") / 100;
+
+      const resultado = {
+        calorias: numero("kcal100") * factor,
+        proteina: numero("proteina100") * factor,
+        carbohidratos: numero("carbos100") * factor,
+        grasa: numero("grasa100") * factor
+      };
+
+      document.getElementById("vistaKcal").textContent =
+        `${formatoNumero.format(resultado.calorias)} kcal`;
+      document.getElementById("vistaProteina").textContent =
+        `${formatoNumero.format(resultado.proteina)} g`;
+      document.getElementById("vistaCarbos").textContent =
+        `${formatoNumero.format(resultado.carbohidratos)} g`;
+      document.getElementById("vistaGrasa").textContent =
+        `${formatoNumero.format(resultado.grasa)} g`;
+
+      return resultado;
+    }
+
+    function registrosDeHoy() {
+      return registros.filter(registro => registro.fecha === hoy);
+    }
+
+    function actualizarResumen() {
+      const delDia = registrosDeHoy();
+
+      const totales = delDia.reduce((acumulado, registro) => {
+        acumulado.calorias += registro.calorias;
+        acumulado.proteina += registro.proteina;
+        acumulado.carbohidratos += registro.carbohidratos;
+        acumulado.grasa += registro.grasa;
+        return acumulado;
+      }, { calorias: 0, proteina: 0, carbohidratos: 0, grasa: 0 });
+
+      document.getElementById("caloriasConsumidas").textContent =
+        formatoNumero.format(totales.calorias);
+      document.getElementById("metaCalorias").textContent =
+        formatoNumero.format(metas.calorias);
+
+      const restantes = metas.calorias - totales.calorias;
+      document.getElementById("caloriasRestantes").textContent =
+        restantes >= 0
+          ? `Restan ${formatoNumero.format(restantes)} kcal`
+          : `Excediste ${formatoNumero.format(Math.abs(restantes))} kcal`;
+
+      const porcentaje = metas.calorias > 0
+        ? Math.min((totales.calorias / metas.calorias) * 100, 100)
+        : 0;
+
+      document.getElementById("barraCalorias").style.width = `${porcentaje}%`;
+      document.getElementById("porcentajeCalorias").textContent =
+        `${formatoNumero.format((totales.calorias / metas.calorias) * 100 || 0)}% de tu meta diaria`;
+
+      document.getElementById("proteinaConsumida").textContent =
+        formatoNumero.format(totales.proteina);
+      document.getElementById("carbohidratosConsumidos").textContent =
+        formatoNumero.format(totales.carbohidratos);
+      document.getElementById("grasaConsumida").textContent =
+        formatoNumero.format(totales.grasa);
+
+      document.getElementById("metaProteina").textContent =
+        `Meta: ${metas.proteina} g`;
+      document.getElementById("metaCarbohidratos").textContent =
+        `Meta: ${metas.carbohidratos} g`;
+      document.getElementById("metaGrasa").textContent =
+        `Meta: ${metas.grasa} g`;
+
+      const lista = document.getElementById("listaComidas");
+
+      if (delDia.length === 0) {
+        lista.innerHTML = '<div class="vacio">Aún no has registrado alimentos hoy.</div>';
+        return;
+      }
+
+      lista.innerHTML = delDia
+        .slice()
+        .reverse()
+        .map(registro => `
+          <div class="fila-registro">
+            <div>
+              <strong>${escaparHtml(registro.alimento)}</strong>
+              <small>${escaparHtml(registro.comida)} · ${registro.cantidad} g · P: ${formatoNumero.format(registro.proteina)} g</small>
+            </div>
+            <div class="kcal">${formatoNumero.format(registro.calorias)} kcal</div>
+          </div>
+        `)
+        .join("");
+    }
+
+    function escaparHtml(texto) {
+      const temporal = document.createElement("div");
+      temporal.textContent = texto;
+      return temporal.innerHTML;
+    }
+
+    function actualizarFrecuentes() {
+      const contenedor = document.getElementById("botonesFrecuentes");
+      const aviso = document.getElementById("sinFrecuentes");
+
+      if (frecuentes.length === 0) {
+        contenedor.innerHTML = "";
+        aviso.classList.remove("oculto");
+        return;
+      }
+
+      aviso.classList.add("oculto");
+
+      contenedor.innerHTML = frecuentes.map((alimento, indice) => `
+        <button data-frecuente="${indice}">
+          ${escaparHtml(alimento.alimento)}
+        </button>
+      `).join("");
+
+      document.querySelectorAll("[data-frecuente]").forEach(boton => {
+        boton.addEventListener("click", () => {
+          const alimento = frecuentes[Number(boton.dataset.frecuente)];
+          llenarFormulario(alimento);
+          document.getElementById("modalRegistro").showModal();
+        });
+      });
+    }
+
+    function llenarFormulario(datos) {
+      document.getElementById("alimento").value = datos.alimento || "";
+      document.getElementById("cantidad").value = datos.cantidad || 100;
+      document.getElementById("kcal100").value = datos.kcal100 || 0;
+      document.getElementById("proteina100").value = datos.proteina100 || 0;
+      document.getElementById("carbos100").value = datos.carbos100 || 0;
+      document.getElementById("grasa100").value = datos.grasa100 || 0;
+      document.getElementById("guardarFrecuente").checked = false;
+      calcularPorcion();
+    }
+
+    function limpiarFormulario() {
+      document.getElementById("alimento").value = "";
+      document.getElementById("comida").value = "Almuerzo";
+      document.getElementById("cantidad").value = 100;
+      document.getElementById("kcal100").value = 0;
+      document.getElementById("proteina100").value = 0;
+      document.getElementById("carbos100").value = 0;
+      document.getElementById("grasa100").value = 0;
+      document.getElementById("guardarFrecuente").checked = false;
+      calcularPorcion();
+    }
+
+    function mostrarMensaje(texto) {
+      const anterior = document.querySelector(".mensaje");
+      if (anterior) anterior.remove();
+
+      const mensaje = document.createElement("div");
+      mensaje.className = "mensaje";
+      mensaje.textContent = texto;
+      document.body.appendChild(mensaje);
+
+      setTimeout(() => mensaje.remove(), 2400);
+    }
+
+    document.getElementById("abrirRegistro").addEventListener("click", () => {
+      limpiarFormulario();
+      document.getElementById("modalRegistro").showModal();
+    });
+
+    document.getElementById("abrirMetas").addEventListener("click", () => {
+      document.getElementById("metaKcalInput").value = metas.calorias;
+      document.getElementById("metaProteinaInput").value = metas.proteina;
+      document.getElementById("metaCarbosInput").value = metas.carbohidratos;
+      document.getElementById("metaGrasaInput").value = metas.grasa;
+      document.getElementById("modalMetas").showModal();
+    });
+
+    document.querySelectorAll("[data-cerrar]").forEach(boton => {
+      boton.addEventListener("click", () => {
+        document.getElementById(boton.dataset.cerrar).close();
+      });
+    });
+
+    ["cantidad", "kcal100", "proteina100", "carbos100", "grasa100"]
+      .forEach(id => document.getElementById(id).addEventListener("input", calcularPorcion));
+
+    document.getElementById("guardarAlimento").addEventListener("click", () => {
+      const nombre = document.getElementById("alimento").value.trim();
+
+      if (!nombre) {
+        mostrarMensaje("Escribe el nombre del alimento.");
+        return;
+      }
+
+      const porcion = calcularPorcion();
+
+      const nuevoRegistro = {
+        id: Date.now(),
+        fecha: hoy,
+        comida: document.getElementById("comida").value,
+        alimento: nombre,
+        cantidad: numero("cantidad"),
+        calorias: Number(porcion.calorias.toFixed(1)),
+        proteina: Number(porcion.proteina.toFixed(1)),
+        carbohidratos: Number(porcion.carbohidratos.toFixed(1)),
+        grasa: Number(porcion.grasa.toFixed(1))
+      };
+
+      registros.push(nuevoRegistro);
+      guardarDatos(CLAVE_REGISTROS, registros);
+
+      if (document.getElementById("guardarFrecuente").checked) {
+        const frecuente = {
+          alimento: nombre,
+          cantidad: numero("cantidad"),
+          kcal100: numero("kcal100"),
+          proteina100: numero("proteina100"),
+          carbos100: numero("carbos100"),
+          grasa100: numero("grasa100")
+        };
+
+        const existe = frecuentes.some(item =>
+          item.alimento.toLowerCase() === frecuente.alimento.toLowerCase()
+        );
+
+        if (!existe) {
+          frecuentes.push(frecuente);
+          guardarDatos(CLAVE_FRECUENTES, frecuentes);
+        }
+      }
+
+      document.getElementById("modalRegistro").close();
+      actualizarResumen();
+      actualizarFrecuentes();
+      mostrarMensaje("Alimento guardado.");
+    });
+
+    document.getElementById("guardarMetas").addEventListener("click", () => {
+      metas = {
+        calorias: Number(document.getElementById("metaKcalInput").value) || 1800,
+        proteina: Number(document.getElementById("metaProteinaInput").value) || 0,
+        carbohidratos: Number(document.getElementById("metaCarbosInput").value) || 0,
+        grasa: Number(document.getElementById("metaGrasaInput").value) || 0
+      };
+
+      guardarDatos(CLAVE_METAS, metas);
+      document.getElementById("modalMetas").close();
+      actualizarResumen();
+      mostrarMensaje("Metas actualizadas.");
+    });
+
+    document.getElementById("eliminarDia").addEventListener("click", () => {
+      const confirmar = confirm("¿Eliminar todos los alimentos registrados hoy?");
+      if (!confirmar) return;
+
+      registros = registros.filter(registro => registro.fecha !== hoy);
+      guardarDatos(CLAVE_REGISTROS, registros);
+      actualizarResumen();
+      mostrarMensaje("Registro de hoy eliminado.");
+    });
+
+    document.getElementById("descargarRespaldo").addEventListener("click", () => {
+      const respaldo = {
+        version: 1,
+        fechaRespaldo: new Date().toISOString(),
+        registros,
+        frecuentes,
+        metas
+      };
+
+      const archivo = new Blob([JSON.stringify(respaldo, null, 2)], {
+        type: "application/json"
+      });
+
+      const enlace = document.createElement("a");
+      enlace.href = URL.createObjectURL(archivo);
+      enlace.download = `respaldo-mis-calorias-${hoy}.json`;
+      enlace.click();
+      URL.revokeObjectURL(enlace.href);
+
+      mostrarMensaje("Respaldo descargado.");
+    });
+
+    document.getElementById("botonImportar").addEventListener("click", () => {
+      document.getElementById("archivoImportar").click();
+    });
+
+    document.getElementById("archivoImportar").addEventListener("change", evento => {
+      const archivo = evento.target.files[0];
+      if (!archivo) return;
+
+      const lector = new FileReader();
+
+      lector.onload = () => {
+        try {
+          const respaldo = JSON.parse(lector.result);
+
+          if (!Array.isArray(respaldo.registros) || !respaldo.metas) {
+            throw new Error("Archivo no válido");
+          }
+
+          const confirmar = confirm("Esto reemplazará los datos actuales. ¿Deseas continuar?");
+          if (!confirmar) return;
+
+          registros = respaldo.registros || [];
+          frecuentes = respaldo.frecuentes || [];
+          metas = respaldo.metas || metasPredeterminadas;
+
+          guardarDatos(CLAVE_REGISTROS, registros);
+          guardarDatos(CLAVE_FRECUENTES, frecuentes);
+          guardarDatos(CLAVE_METAS, metas);
+
+          actualizarResumen();
+          actualizarFrecuentes();
+          mostrarMensaje("Respaldo restaurado correctamente.");
+        } catch {
+          mostrarMensaje("No se pudo leer ese archivo de respaldo.");
+        }
+      };
+
+      lector.readAsText(archivo);
+      evento.target.value = "";
+    });
+
+    fechaBonita();
+    calcularPorcion();
+    actualizarResumen();
+    actualizarFrecuentes();
+  </script>
+</body>
+  </html>
