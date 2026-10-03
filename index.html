@@ -478,7 +478,32 @@
     const CLAVE_METAS = "mis_calorias_metas_v1";
 
     const hoy = new Date().toISOString().slice(0, 10);
-
+const alimentosEstimados = [
+  { nombres: ["arroz cocido", "arroz"], kcal: 130, proteina: 2.7, carbos: 28.2, grasa: 0.3 },
+  { nombres: ["pechuga de pollo", "pollo a la plancha", "pollo"], kcal: 165, proteina: 31, carbos: 0, grasa: 3.6 },
+  { nombres: ["huevo", "huevo entero"], kcal: 143, proteina: 12.6, carbos: 0.7, grasa: 9.5 },
+  { nombres: ["clara de huevo", "claras"], kcal: 52, proteina: 10.9, carbos: 0.7, grasa: 0.2 },
+  { nombres: ["avena", "avena en hojuelas"], kcal: 389, proteina: 16.9, carbos: 66.3, grasa: 6.9 },
+  { nombres: ["banano", "banana"], kcal: 89, proteina: 1.1, carbos: 22.8, grasa: 0.3 },
+  { nombres: ["papa cocida", "papa"], kcal: 87, proteina: 1.9, carbos: 20.1, grasa: 0.1 },
+  { nombres: ["pan integral", "pan"], kcal: 247, proteina: 13, carbos: 41, grasa: 4.2 },
+  { nombres: ["arepa", "arepa de maiz"], kcal: 218, proteina: 5.4, carbos: 44, grasa: 2.3 },
+  { nombres: ["pasta cocida", "pasta"], kcal: 158, proteina: 5.8, carbos: 30.9, grasa: 0.9 },
+  { nombres: ["atun", "atún"], kcal: 116, proteina: 25.5, carbos: 0, grasa: 0.8 },
+  { nombres: ["carne de res", "carne"], kcal: 217, proteina: 26, carbos: 0, grasa: 12 },
+  { nombres: ["yogur griego", "yogurt griego"], kcal: 97, proteina: 9, carbos: 3.9, grasa: 5 },
+  { nombres: ["leche entera", "leche"], kcal: 61, proteina: 3.2, carbos: 4.8, grasa: 3.3 },
+  { nombres: ["queso costeño", "queso"], kcal: 330, proteina: 20, carbos: 2, grasa: 26 },
+  { nombres: ["aguacate", "avocado"], kcal: 160, proteina: 2, carbos: 8.5, grasa: 14.7 },
+  { nombres: ["manzana"], kcal: 52, proteina: 0.3, carbos: 13.8, grasa: 0.2 },
+  { nombres: ["naranja"], kcal: 47, proteina: 0.9, carbos: 11.8, grasa: 0.1 },
+  { nombres: ["papaya"], kcal: 43, proteina: 0.5, carbos: 10.8, grasa: 0.3 },
+  { nombres: ["brocoli", "brócoli"], kcal: 34, proteina: 2.8, carbos: 6.6, grasa: 0.4 },
+  { nombres: ["tomate"], kcal: 18, proteina: 0.9, carbos: 3.9, grasa: 0.2 },
+  { nombres: ["aceite", "aceite de oliva"], kcal: 884, proteina: 0, carbos: 0, grasa: 100 },
+  { nombres: ["cafe negro", "café negro", "cafe"], kcal: 2, proteina: 0.1, carbos: 0, grasa: 0 },
+  { nombres: ["azucar", "azúcar"], kcal: 387, proteina: 0, carbos: 100, grasa: 0 }
+];
     const metasPredeterminadas = {
       calorias: 1800,
       proteina: 120,
@@ -520,7 +545,40 @@
       document.getElementById("fechaActual").textContent =
         texto.charAt(0).toUpperCase() + texto.slice(1);
     }
+function normalizarTexto(texto) {
+  return texto
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[̀-ͯ]/g, "")
+    .trim();
+}
 
+function estimarAlimento() {
+  const textoEscrito = normalizarTexto(
+    document.getElementById("alimento").value
+  );
+
+  if (textoEscrito.length < 3) return;
+
+  const encontrado = alimentosEstimados.find(alimento =>
+    alimento.nombres.some(nombre => {
+      const nombreNormalizado = normalizarTexto(nombre);
+
+      return textoEscrito.includes(nombreNormalizado) ||
+             nombreNormalizado.includes(textoEscrito);
+    })
+  );
+
+  if (!encontrado) return;
+
+  document.getElementById("kcal100").value = encontrado.kcal;
+  document.getElementById("proteina100").value = encontrado.proteina;
+  document.getElementById("carbos100").value = encontrado.carbos;
+  document.getElementById("grasa100").value = encontrado.grasa;
+
+  calcularPorcion();
+  mostrarMensaje("Valores aproximados cargados. Verifica la preparación.");
+    }
     function calcularPorcion() {
       const factor = numero("cantidad") / 100;
 
@@ -702,7 +760,7 @@
 
     ["cantidad", "kcal100", "proteina100", "carbos100", "grasa100"]
       .forEach(id => document.getElementById(id).addEventListener("input", calcularPorcion));
-
+document.getElementById("alimento").addEventListener("change", estimarAlimento);
     document.getElementById("guardarAlimento").addEventListener("click", () => {
       const nombre = document.getElementById("alimento").value.trim();
 
